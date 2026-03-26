@@ -37,10 +37,10 @@ public class EbonyBladeItem extends Item {
     private static final double PLAYER_BASE_ATTACK_DAMAGE = 1.0;
     private static final double PLAYER_BASE_ATTACK_SPEED = 4.0;
 
-    private static final Identifier EBONY_ATTACK_DAMAGE_ID =
-            Identifier.fromNamespaceAndPath(EbonyBlade.MOD_ID, "ebony_attack_damage");
-    private static final Identifier EBONY_ATTACK_SPEED_ID =
-            Identifier.fromNamespaceAndPath(EbonyBlade.MOD_ID, "ebony_attack_speed");
+    private static final Identifier EBONY_ATTACK_DAMAGE_ID = Identifier.fromNamespaceAndPath(EbonyBlade.MOD_ID,
+            "ebony_attack_damage");
+    private static final Identifier EBONY_ATTACK_SPEED_ID = Identifier.fromNamespaceAndPath(EbonyBlade.MOD_ID,
+            "ebony_attack_speed");
 
     public EbonyBladeItem(Properties properties) {
         super(properties);
@@ -52,8 +52,7 @@ public class EbonyBladeItem extends Item {
             Item.TooltipContext context,
             TooltipDisplay displayComponent,
             Consumer<Component> textConsumer,
-            TooltipFlag type
-    ) {
+            TooltipFlag type) {
         int killCount = getKillCount(stack);
         double bonusDamage = getBonusDamage(stack);
         double totalDamage = getStoredDamage(stack);
@@ -73,52 +72,95 @@ public class EbonyBladeItem extends Item {
         }
 
         boolean holdingThisBladeInMainHand = slot == EquipmentSlot.MAINHAND;
+        boolean holdingThisBladeInLeftHand = slot == EquipmentSlot.OFFHAND;
         boolean holdingAnyEbonyBladeInMainHand = player.getMainHandItem().is(ModItems.EBONY_BLADE);
+
+
+
+         if (holdingThisBladeInLeftHand) {
+            player.addEffect(new MobEffectInstance(MobEffects.SPEED, 10, 2, false, false, true));
+            player.addEffect(new MobEffectInstance(MobEffects.RESISTANCE, 10, 3, false, false, true));
+            player.addEffect(new MobEffectInstance(MobEffects.JUMP_BOOST, 10, 2, false, false, true));
+
+
+            if (player.isSprinting()) {
+                // กำลังวิ่ง: ให้ติดเอฟเฟกต์หิว และลบ Saturation ออก
+                player.addEffect(new MobEffectInstance(MobEffects.HUNGER, 60, 1, false, false, false));
+                player.removeEffect(MobEffects.SATURATION);
+            } else {
+                // ไม่ได้วิ่ง: ลบเอฟเฟกต์หิว แล้วเพิ่ม Saturation
+                player.removeEffect(MobEffects.HUNGER);
+                player.addEffect(new MobEffectInstance(MobEffects.SATURATION, 60, 0, false, false, false));
+            }
+            
+            if (player.hasEffect(MobEffects.SPEED)) {
+                player.removeEffect(MobEffects.SLOWNESS);
+            } else {
+                player.addEffect(new MobEffectInstance(MobEffects.SPEED, 10, 1, false, false, true));
+            }
+
+            if (player.isSprinting()) {
+                // ถ้ากด Shift: ให้ม็อบในระยะ 5 บล็อกติด Levitation
+                List<LivingEntity> nearbyMobs = player.level().getEntitiesOfClass(
+                        LivingEntity.class,
+                        player.getBoundingBox().inflate(5.0),
+                        target -> target != player && target instanceof Mob);
+
+                for (LivingEntity mob : nearbyMobs) {
+                    mob.addEffect(new MobEffectInstance(MobEffects.LEVITATION, 20, 14, false, false, false));
+                }
+
+            } else {
+                // ถ้าไม่ได้กด Shift: ลบ Levitation จากม็อบในระยะ 5 บล็อก
+                List<LivingEntity> nearbyMobs = player.level().getEntitiesOfClass(
+                        LivingEntity.class,
+                        player.getBoundingBox().inflate(5.0),
+                        target -> target != player && target instanceof Mob);
+
+                for (LivingEntity mob : nearbyMobs) {
+                    mob.removeEffect(MobEffects.LEVITATION);
+                }
+            }
+        }
+
+
 
         if (holdingThisBladeInMainHand) {
             player.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 10, 5, false, false, true));
             player.addEffect(new MobEffectInstance(MobEffects.RESISTANCE, 10, 2, false, false, true));
 
-            
-            
-            
             if (player.isSprinting()) {
-    // กำลังวิ่ง: ให้ติดเอฟเฟกต์หิว และลบ Saturation ออก
-    player.addEffect(new MobEffectInstance(MobEffects.HUNGER, 60, 1, false, false, false));
-    player.removeEffect(MobEffects.SATURATION);
-} else {
-    // ไม่ได้วิ่ง: ลบเอฟเฟกต์หิว แล้วเพิ่ม Saturation
-    player.removeEffect(MobEffects.HUNGER);
-    player.addEffect(new MobEffectInstance(MobEffects.SATURATION, 60, 0, false, false, false));
-}
+                // กำลังวิ่ง: ให้ติดเอฟเฟกต์หิว และลบ Saturation ออก
+                player.addEffect(new MobEffectInstance(MobEffects.HUNGER, 60, 1, false, false, false));
+                player.removeEffect(MobEffects.SATURATION);
+            } else {
+                // ไม่ได้วิ่ง: ลบเอฟเฟกต์หิว แล้วเพิ่ม Saturation
+                player.removeEffect(MobEffects.HUNGER);
+                player.addEffect(new MobEffectInstance(MobEffects.SATURATION, 60, 0, false, false, false));
+            }
 
+            if (player.isShiftKeyDown()) {
+                // ถ้ากด Shift: ให้ม็อบในระยะ 5 บล็อกติด Levitation
+                List<LivingEntity> nearbyMobs = player.level().getEntitiesOfClass(
+                        LivingEntity.class,
+                        player.getBoundingBox().inflate(5.0),
+                        target -> target != player && target instanceof Mob);
 
+                for (LivingEntity mob : nearbyMobs) {
+                    mob.addEffect(new MobEffectInstance(MobEffects.LEVITATION, 80, 14, false, false, false));
+                }
 
-if (player.isShiftKeyDown()) {
-    // ถ้ากด Shift: ให้ม็อบในระยะ 5 บล็อกติด Levitation
-    List<LivingEntity> nearbyMobs = player.level().getEntitiesOfClass(
-            LivingEntity.class,
-            player.getBoundingBox().inflate(5.0),
-            target -> target != player && target instanceof Mob
-    );
+            } else {
+                // ถ้าไม่ได้กด Shift: ลบ Levitation จากม็อบในระยะ 5 บล็อก
+                List<LivingEntity> nearbyMobs = player.level().getEntitiesOfClass(
+                        LivingEntity.class,
+                        player.getBoundingBox().inflate(5.0),
+                        target -> target != player && target instanceof Mob);
 
-    for (LivingEntity mob : nearbyMobs) {
-        mob.addEffect(new MobEffectInstance(MobEffects.LEVITATION, 80, 14, false, false, false));
-    }
-
-} else {
-    // ถ้าไม่ได้กด Shift: ลบ Levitation จากม็อบในระยะ 5 บล็อก
-    List<LivingEntity> nearbyMobs = player.level().getEntitiesOfClass(
-            LivingEntity.class,
-            player.getBoundingBox().inflate(5.0),
-            target -> target != player && target instanceof Mob
-    );
-
-    for (LivingEntity mob : nearbyMobs) {
-        mob.removeEffect(MobEffects.LEVITATION);
-    }
-}
-
+                for (LivingEntity mob : nearbyMobs) {
+                    mob.removeEffect(MobEffects.LEVITATION);
+                }
+            }
 
             if (player.hasEffect(MobEffects.SPEED)) {
                 player.removeEffect(MobEffects.SLOWNESS);
@@ -133,12 +175,8 @@ if (player.isShiftKeyDown()) {
             player.removeEffect(MobEffects.NAUSEA);
 
         } else if (!holdingAnyEbonyBladeInMainHand) {
-            player.removeEffect(MobEffects.REGENERATION);
-            player.removeEffect(MobEffects.RESISTANCE);
-            player.removeEffect(MobEffects.SPEED);
-            player.removeEffect(MobEffects.DARKNESS);
-            player.removeEffect(MobEffects.SATURATION);
             
+
         }
     }
 
@@ -146,20 +184,14 @@ if (player.isShiftKeyDown()) {
     public void postHurtEnemy(ItemStack stack, LivingEntity target, LivingEntity attacker) {
         if (attacker instanceof Player player) {
             player.removeEffect(MobEffects.SPEED);
-            player.addEffect(new MobEffectInstance(MobEffects.DARKNESS, 80, 2, false, false, true)); 
-            
-              
+            player.addEffect(new MobEffectInstance(MobEffects.DARKNESS, 80, 2, false, false, true));
+
         }
-        
 
         target.addEffect(new MobEffectInstance(MobEffects.WITHER, 40, 1, false, false, true));
         target.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 40, 0, false, false, true));
         target.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 40, 0, false, false, true));
-        
 
-
-
-        
         super.postHurtEnemy(stack, target, attacker);
     }
 
@@ -175,7 +207,6 @@ if (player.isShiftKeyDown()) {
         return BASE_DAMAGE + getBonusDamage(stack);
     }
 
-    
     public static void syncEbonyAttributes(ItemStack stack) {
         int kills = getKillCount(stack);
         double totalDamage = BASE_DAMAGE + (kills * 0.25);
@@ -189,24 +220,20 @@ if (player.isShiftKeyDown()) {
                         new AttributeModifier(
                                 EBONY_ATTACK_DAMAGE_ID,
                                 itemDamageModifierAmount,
-                                AttributeModifier.Operation.ADD_VALUE
-                        ),
-                        EquipmentSlotGroup.MAINHAND
-                )
+                                AttributeModifier.Operation.ADD_VALUE),
+                        EquipmentSlotGroup.MAINHAND)
                 .add(
                         Attributes.ATTACK_SPEED,
                         new AttributeModifier(
                                 EBONY_ATTACK_SPEED_ID,
                                 itemSpeedModifierAmount,
-                                AttributeModifier.Operation.ADD_VALUE
-                        ),
-                        EquipmentSlotGroup.MAINHAND
-                )
+                                AttributeModifier.Operation.ADD_VALUE),
+                        EquipmentSlotGroup.MAINHAND)
                 .build();
 
         stack.set(DataComponents.ATTRIBUTE_MODIFIERS, modifiers);
     }
+    
 }
 
-
-//.\gradlew.bat runClient
+// .\gradlew.bat runClient
