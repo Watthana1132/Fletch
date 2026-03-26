@@ -5,7 +5,7 @@
 	"ambientocclusion": false,
 	"texture_size": [32, 32],
 	"textures": {
-  "layer0": "ebonyblade:item/ebony_blade",
+  "0": "ebonyblade:item/ebony_blade",
   "particle": "ebonyblade:item/ebony_blade"
 
 	},
@@ -145,7 +145,44 @@
 		"thirdperson_righthand": {
 			"rotation": [-5.07, -86.77, -4.4],
 			"translation": [0.5, 3.25, 0],
-			"scale": [0.47852, 1.04883, 0.60547]
+			"scale": [0.5, 1, 0.5]
+		},
+		"thirdperson_lefthand": {
+			"rotation": [63.63, -86.76, -117.88],
+			"translation": [0.5, -7.5, 0.75],
+			"scale": [0.5, 1, 0.5]
+		},
+		"firstperson_righthand": {
+			"rotation": [180, -77.75, 180],
+			"translation": [0, -0.25, 0]
+		},
+		"firstperson_lefthand": {
+			"rotation": [125.27, -59, 5],
+			"translation": [0, -1.5, 11]
+		},
+		"ground": {
+			"rotation": [-180, 0, 130],
+			"translation": [0, 2, 0],
+			"scale": [0.5, 1, 0.5]
+		},
+		"gui": {
+			"rotation": [0, 0, 45],
+			"translation": [2.25, -2.5, 0],
+			"scale": [0.35, 0.75, 0.35]
+		},
+		"head": {
+			"rotation": [-28, 31, 122],
+			"translation": [8.25, 5.25, -7.25],
+			"scale": [0.5, 1, 0.5]
+		},
+		"fixed": {
+			"rotation": [0, 0, -45],
+			"translation": [-3.5, -3, -0.75],
+			"scale": [0.5, 1, 0.5]
+		},
+		"on_shelf": {
+			"translation": [0, 0, -0.75],
+			"scale": [0.5, 1, 0.5]
 		}
 	},
 	"groups": [
