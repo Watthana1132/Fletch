@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " NN",
+    " SN",
+    "S  "
+  ],
+  "key": {
+    "N": "minecraft:dirt",
+    "S": "minecraft:stick"
+  },
+  "result": {
+    "id": "ebonyblade:ebony_blade",
+    "count": 1
+  }
+}
