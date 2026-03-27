@@ -17,7 +17,7 @@ public class ModItems {
         "ebony_blade",
         EbonyBladeItem::new,
         new Item.Properties()
-                .sword(ToolMaterial.NETHERITE, 2.0F, 2.0F)
+                .sword(ToolMaterial.NETHERITE, 2.0F, 1.0F)
                 .component(ModComponents.KILL_COUNT, 0)
 );
 
@@ -34,7 +34,7 @@ public class ModItems {
     }
 
     public static void initialize() {
-        ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.TOOLS_AND_UTILITIES)
+        ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.COMBAT)
                 .register(entries -> entries.accept(EBONY_BLADE));
     }
 }

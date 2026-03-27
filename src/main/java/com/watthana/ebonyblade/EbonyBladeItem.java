@@ -96,19 +96,19 @@ public class EbonyBladeItem extends Item {
 
 
          if (holdingThisBladeInLeftHand) {
-            player.addEffect(new MobEffectInstance(MobEffects.SPEED, 10, 2, false, false, true));
-            player.addEffect(new MobEffectInstance(MobEffects.RESISTANCE, 10, 3, false, false, true));
-            player.addEffect(new MobEffectInstance(MobEffects.JUMP_BOOST, 10, 2, false, false, true));
+            player.addEffect(new MobEffectInstance(MobEffects.SPEED, 10, 1, false, false, true));
+            player.addEffect(new MobEffectInstance(MobEffects.RESISTANCE, 10, 2, false, false, true));
+            player.addEffect(new MobEffectInstance(MobEffects.JUMP_BOOST, 10, 0, false, false, true));
 
 
             if (player.isSprinting()) {
                 // กำลังวิ่ง: ให้ติดเอฟเฟกต์หิว และลบ Saturation ออก
-                player.addEffect(new MobEffectInstance(MobEffects.HUNGER, 60, 1, false, false, false));
+                player.addEffect(new MobEffectInstance(MobEffects.HUNGER, 60, 2, false, false, false));
                 player.removeEffect(MobEffects.SATURATION);
             } else {
                 // ไม่ได้วิ่ง: ลบเอฟเฟกต์หิว แล้วเพิ่ม Saturation
                 player.removeEffect(MobEffects.HUNGER);
-                player.addEffect(new MobEffectInstance(MobEffects.SATURATION, 60, 0, false, false, false));
+                player.addEffect(new MobEffectInstance(MobEffects.SATURATION, 10, 0, false, false, false));
             }
             
             if (player.hasEffect(MobEffects.SPEED)) {
@@ -125,7 +125,7 @@ public class EbonyBladeItem extends Item {
                         target -> target != player && target instanceof Mob);
 
                 for (LivingEntity mob : nearbyMobs) {
-                    mob.addEffect(new MobEffectInstance(MobEffects.LEVITATION, 20, 14, false, false, false));
+                    mob.addEffect(new MobEffectInstance(MobEffects.LEVITATION, 10, 7, false, false, false));
                 }
 
             } else {
@@ -144,24 +144,24 @@ public class EbonyBladeItem extends Item {
 
 
         if (holdingThisBladeInMainHand) {
-            player.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 10, 5, false, false, true));
-            player.addEffect(new MobEffectInstance(MobEffects.RESISTANCE, 10, 2, false, false, true));
+            player.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 10, 1, false, false, true));
+            player.addEffect(new MobEffectInstance(MobEffects.RESISTANCE, 10, 1, false, false, true));
 
             if (player.isSprinting()) {
                 // กำลังวิ่ง: ให้ติดเอฟเฟกต์หิว และลบ Saturation ออก
-                player.addEffect(new MobEffectInstance(MobEffects.HUNGER, 60, 1, false, false, false));
+                player.addEffect(new MobEffectInstance(MobEffects.HUNGER, 60, 2, false, false, false));
                 player.removeEffect(MobEffects.SATURATION);
             } else {
                 // ไม่ได้วิ่ง: ลบเอฟเฟกต์หิว แล้วเพิ่ม Saturation
                 player.removeEffect(MobEffects.HUNGER);
-                player.addEffect(new MobEffectInstance(MobEffects.SATURATION, 60, 0, false, false, false));
+                player.addEffect(new MobEffectInstance(MobEffects.SATURATION, 10, 0, false, false, false));
             }
 
             if (player.isShiftKeyDown()) {
                 // ถ้ากด Shift: ให้ม็อบในระยะ 5 บล็อกติด Levitation
                 List<LivingEntity> nearbyMobs = player.level().getEntitiesOfClass(
                         LivingEntity.class,
-                        player.getBoundingBox().inflate(5.0),
+                        player.getBoundingBox().inflate(3.0),
                         target -> target != player && target instanceof Mob);
 
                 for (LivingEntity mob : nearbyMobs) {
@@ -172,7 +172,7 @@ public class EbonyBladeItem extends Item {
                 // ถ้าไม่ได้กด Shift: ลบ Levitation จากม็อบในระยะ 5 บล็อก
                 List<LivingEntity> nearbyMobs = player.level().getEntitiesOfClass(
                         LivingEntity.class,
-                        player.getBoundingBox().inflate(5.0),
+                        player.getBoundingBox().inflate(20.0),
                         target -> target != player && target instanceof Mob);
 
                 for (LivingEntity mob : nearbyMobs) {
@@ -183,7 +183,7 @@ public class EbonyBladeItem extends Item {
             if (player.hasEffect(MobEffects.SPEED)) {
                 player.removeEffect(MobEffects.SLOWNESS);
             } else {
-                player.addEffect(new MobEffectInstance(MobEffects.SPEED, 10, 1, false, false, true));
+                player.addEffect(new MobEffectInstance(MobEffects.SPEED, 10, 0, false, false, true));
             }
 
             player.removeEffect(MobEffects.BLINDNESS);
@@ -217,7 +217,7 @@ public InteractionResult use(Level level, Player player, InteractionHand hand) {
     fireSonicBoom((ServerLevel) level, player);
 
     // คูลดาวน์ 2 วินาที
-    player.getCooldowns().addCooldown(stack, 30);
+    player.getCooldowns().addCooldown(stack, 40);
 
 
     return InteractionResult.SUCCESS;
@@ -226,7 +226,7 @@ public InteractionResult use(Level level, Player player, InteractionHand hand) {
 private void fireSonicBoom(ServerLevel level, Player player) {
     double range = 14.0D;
     double beamRadius = 1.0D;
-    float damage = 8.0F;
+    float damage = 6.0F;
 
     Vec3 start = player.getEyePosition();
     Vec3 direction = player.getViewVector(1.0F).normalize();
@@ -243,7 +243,7 @@ private void fireSonicBoom(ServerLevel level, Player player) {
     );
 
     // อนุภาคเป็นแนวคลื่น
-    int steps = 40;
+    int steps = 28;
     for (int i = 0; i <= steps; i++) {
         double t = (double) i / steps;
         Vec3 particlePos = start.lerp(end, t);
@@ -309,7 +309,7 @@ living.hurtMarked = true;
 
         }
 
-        target.addEffect(new MobEffectInstance(MobEffects.WITHER, 40, 1, false, false, true));
+        target.addEffect(new MobEffectInstance(MobEffects.WITHER, 40, 0, false, false, true));
         target.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 40, 0, false, false, true));
         target.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 40, 0, false, false, true));
 
