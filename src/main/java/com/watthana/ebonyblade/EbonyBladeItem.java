@@ -1,6 +1,8 @@
 package com.watthana.ebonyblade;
 
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.world.InteractionHand;
@@ -16,6 +18,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 
 
@@ -98,7 +101,8 @@ public class EbonyBladeItem extends Item {
          if (holdingThisBladeInLeftHand) {
             player.addEffect(new MobEffectInstance(MobEffects.SPEED, 10, 1, false, false, true));
             player.addEffect(new MobEffectInstance(MobEffects.RESISTANCE, 10, 2, false, false, true));
-            player.addEffect(new MobEffectInstance(MobEffects.JUMP_BOOST, 10, 0, false, false, true));
+        
+            player.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 10, 2, false, false, true));
 
 
             if (player.isSprinting()) {
@@ -110,13 +114,7 @@ public class EbonyBladeItem extends Item {
                 player.removeEffect(MobEffects.HUNGER);
                 player.addEffect(new MobEffectInstance(MobEffects.SATURATION, 10, 0, false, false, false));
             }
-            
-            if (player.hasEffect(MobEffects.SPEED)) {
-                player.removeEffect(MobEffects.SLOWNESS);
-            } else {
-                player.addEffect(new MobEffectInstance(MobEffects.SPEED, 10, 1, false, false, true));
-            }
-
+        
             if (player.isSprinting()) {
                 // ถ้ากด Shift: ให้ม็อบในระยะ 5 บล็อกติด Levitation
                 List<LivingEntity> nearbyMobs = player.level().getEntitiesOfClass(
@@ -165,7 +163,7 @@ public class EbonyBladeItem extends Item {
                         target -> target != player && target instanceof Mob);
 
                 for (LivingEntity mob : nearbyMobs) {
-                    mob.addEffect(new MobEffectInstance(MobEffects.LEVITATION, 80, 14, false, false, false));
+                    mob.addEffect(new MobEffectInstance(MobEffects.LEVITATION, 20, 14, false, false, false));
                 }
 
             } else {
@@ -183,7 +181,7 @@ public class EbonyBladeItem extends Item {
             if (player.hasEffect(MobEffects.SPEED)) {
                 player.removeEffect(MobEffects.SLOWNESS);
             } else {
-                player.addEffect(new MobEffectInstance(MobEffects.SPEED, 10, 0, false, false, true));
+                player.addEffect(new MobEffectInstance(MobEffects.SPEED, 10, 1, false, false, true));
             }
 
             player.removeEffect(MobEffects.BLINDNESS);
@@ -207,26 +205,78 @@ public InteractionResult use(Level level, Player player, InteractionHand hand) {
     ItemStack stack = player.getItemInHand(hand);
 
     if (player.getCooldowns().isOnCooldown(stack)) {
+        
         return InteractionResult.FAIL;
     }
 
     if (level.isClientSide()) {
         return InteractionResult.SUCCESS;
+        
     }
 
     fireSonicBoom((ServerLevel) level, player);
-
+    tryWindBurstLaunch(player);
     // คูลดาวน์ 2 วินาที
-    player.getCooldowns().addCooldown(stack, 40);
+    player.getCooldowns().addCooldown(stack, 10);
 
 
     return InteractionResult.SUCCESS;
 }
 
+//
+private void tryWindBurstLaunch(Player player) {
+    // ใช้มุมมองปัจจุบันของผู้เล่น
+    Vec3 look = player.getViewVector(1.0F).normalize();
+
+    // ต้องก้มลงพอสมควร ไม่งั้นไม่เด้ง
+    if (look.y > -0.55D) {
+        return;
+    }
+
+    // ยิงเช็กพื้นใกล้ตัว
+    HitResult hit = player.pick(3.25D, 1.0F, false);
+    if (hit.getType() != HitResult.Type.BLOCK) {
+        return;
+    }
+
+    // ถ้าอยู่กลางอากาศก็ยังใช้ได้ แต่แรงจะลดลงนิดหน่อย
+    boolean grounded = player.onGround();
+
+    double upBoost = grounded ? 1.0D : 0.95D;
+    double backBoost = grounded ? 1.0D : 0.95D;
+
+    // ทิศดีด = ย้อนจากทิศที่มอง + ดันขึ้นบน
+    Vec3 launch = new Vec3(
+            -look.x * backBoost,
+            upBoost,
+            -look.z * backBoost
+    );
+
+    // ลดความเร็วเดิมก่อน กันพุ่งซ้อนแรงเกินไป
+    Vec3 current = player.getDeltaMovement();
+    player.setDeltaMovement(current.x * 0.20D, Math.max(current.y, 0.0D), current.z * 0.20D);
+
+    // ดีดตัว
+    player.addDeltaMovement(launch);
+
+    // กันตกเจ็บหลังดีด
+    player.fallDistance = 0.0F;
+    player.hurtMarked = true;
+}
+
+
+
+
+
+
+
+
+//
+
 private void fireSonicBoom(ServerLevel level, Player player) {
-    double range = 14.0D;
-    double beamRadius = 1.0D;
-    float damage = 6.0F;
+    double range = 16.0D;
+    double beamRadius = 2.0D;
+    float damage = 3F;
 
     Vec3 start = player.getEyePosition();
     Vec3 direction = player.getViewVector(1.0F).normalize();
@@ -238,12 +288,12 @@ private void fireSonicBoom(ServerLevel level, Player player) {
             player.getX(), player.getY(), player.getZ(),
             SoundEvents.WARDEN_ROAR,
             SoundSource.PLAYERS,
-            1.5F,
-            1.0F
+            0.5F,
+            0.25F
     );
 
     // อนุภาคเป็นแนวคลื่น
-    int steps = 28;
+    int steps = 24;
     for (int i = 0; i <= steps; i++) {
         double t = (double) i / steps;
         Vec3 particlePos = start.lerp(end, t);
@@ -261,10 +311,12 @@ private void fireSonicBoom(ServerLevel level, Player player) {
         );
     }
 
+    
+
     // กล่องค้นหาเป้าหมายตามแนวสายตา
     AABB searchBox = player.getBoundingBox()
             .expandTowards(direction.scale(range))
-            .inflate(beamRadius + 1.0D);
+            .inflate(beamRadius + 0.5D);
 
     List<LivingEntity> targets = level.getEntitiesOfClass(
             LivingEntity.class,
@@ -288,6 +340,60 @@ private void fireSonicBoom(ServerLevel level, Player player) {
 
         // ดาเมจแบบ sonic boom
         living.hurt(level.damageSources().sonicBoom(player), damage);
+        living.addEffect(new MobEffectInstance(MobEffects.SLOWNESS,40,1,false,true,true));
+        living.addEffect(new MobEffectInstance(MobEffects.WITHER,60,1,false,true,true));
+        living.addEffect(new MobEffectInstance(MobEffects.LEVITATION,40,1,false,true,true));
+
+
+
+        // ดาเมจแบบ sonic boom
+living.hurt(level.damageSources().sonicBoom(player), damage);
+
+// พาร์ติเคิลติดที่ตัวม็อบตอนโดน
+
+level.sendParticles(
+        ParticleTypes.SONIC_BOOM,
+        living.getX(),
+        living.getY() + living.getBbHeight() * 0.5D,
+        living.getZ(),
+        1,      // จำนวน
+        0.0D,
+        0.0D,
+        0.0D,
+        0.0D
+);
+level.sendParticles(
+        ParticleTypes.SCULK_SOUL,
+        living.getX(),
+        living.getY() + living.getBbHeight() * 0.5D,
+        living.getZ(),
+        6,      // จำนวน
+        0.05D,
+        0.01D,
+        0.01D,
+        0.01D
+);
+
+
+
+
+level.sendParticles(
+        ParticleTypes.SCULK_SOUL,
+        living.getX(),
+        living.getY() + living.getBbHeight() * 0.6D,
+        living.getZ(),
+        
+        18,     // จำนวน
+        0.25D,  // กระจายแกน X
+        0.35D,  // กระจายแกน Y
+        0.25D,  // กระจายแกน Z
+        0.02D   // ความเร็วกระจาย
+);
+        
+
+
+        player.addEffect(new MobEffectInstance(MobEffects.DARKNESS, 40, 2, false, false, true));
+        
 
         // ผลักเป้าหมายไปด้านหน้าเล็กน้อย
         Vec3 knockback = direction.scale(1.2D).add(0.0D, 0.2D, 0.0D);
@@ -295,8 +401,6 @@ private void fireSonicBoom(ServerLevel level, Player player) {
 living.hurtMarked = true;
     }
 }
-
-
 
 
 /////
@@ -314,6 +418,8 @@ living.hurtMarked = true;
         target.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 40, 0, false, false, true));
 
         super.postHurtEnemy(stack, target, attacker);
+
+           restoreDurabilityOnKill(stack, target);
     }
 
 
@@ -356,7 +462,28 @@ living.hurtMarked = true;
 
         stack.set(DataComponents.ATTRIBUTE_MODIFIERS, modifiers);
     }
+
+
+
+    //
     
+private void restoreDurabilityOnKill(ItemStack stack, LivingEntity target) {
+    if (!(target instanceof Mob)) {
+        return;
+    }
+
+    if (!stack.isDamageableItem()) {
+        return;
+    }
+
+    if (!target.isDeadOrDying()) {
+        return;
+    }
+
+    int repairedDamage = Math.max(0, stack.getDamageValue() - 10);
+    stack.setDamageValue(repairedDamage);
+}
+    //
 }
 
 // .\gradlew.bat runClient
