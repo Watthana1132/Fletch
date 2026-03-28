@@ -104,17 +104,6 @@ public class EbonyBladeItem extends Item {
         
             player.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 10, 2, false, false, true));
 
-
-            if (player.isSprinting()) {
-                // กำลังวิ่ง: ให้ติดเอฟเฟกต์หิว และลบ Saturation ออก
-                player.addEffect(new MobEffectInstance(MobEffects.HUNGER, 60, 2, false, false, false));
-                player.removeEffect(MobEffects.SATURATION);
-            } else {
-                // ไม่ได้วิ่ง: ลบเอฟเฟกต์หิว แล้วเพิ่ม Saturation
-                player.removeEffect(MobEffects.HUNGER);
-                player.addEffect(new MobEffectInstance(MobEffects.SATURATION, 10, 0, false, false, false));
-            }
-        
             if (player.isSprinting()) {
                 // ถ้ากด Shift: ให้ม็อบในระยะ 5 บล็อกติด Levitation
                 List<LivingEntity> nearbyMobs = player.level().getEntitiesOfClass(
@@ -123,7 +112,8 @@ public class EbonyBladeItem extends Item {
                         target -> target != player && target instanceof Mob);
 
                 for (LivingEntity mob : nearbyMobs) {
-                    mob.addEffect(new MobEffectInstance(MobEffects.LEVITATION, 10, 7, false, false, false));
+                    mob.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 10, 2, false, false, false));
+                    
                 }
 
             } else {
@@ -147,11 +137,9 @@ public class EbonyBladeItem extends Item {
 
             if (player.isSprinting()) {
                 // กำลังวิ่ง: ให้ติดเอฟเฟกต์หิว และลบ Saturation ออก
-                player.addEffect(new MobEffectInstance(MobEffects.HUNGER, 60, 2, false, false, false));
-                player.removeEffect(MobEffects.SATURATION);
+                
             } else {
                 // ไม่ได้วิ่ง: ลบเอฟเฟกต์หิว แล้วเพิ่ม Saturation
-                player.removeEffect(MobEffects.HUNGER);
                 player.addEffect(new MobEffectInstance(MobEffects.SATURATION, 10, 0, false, false, false));
             }
 
@@ -163,18 +151,19 @@ public class EbonyBladeItem extends Item {
                         target -> target != player && target instanceof Mob);
 
                 for (LivingEntity mob : nearbyMobs) {
-                    mob.addEffect(new MobEffectInstance(MobEffects.LEVITATION, 20, 14, false, false, false));
+                    mob.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 20, 7, false, false, false));
+                    mob.addEffect(new MobEffectInstance(MobEffects.POISON, 40, 1, false, false, false));
                 }
 
             } else {
                 // ถ้าไม่ได้กด Shift: ลบ Levitation จากม็อบในระยะ 5 บล็อก
                 List<LivingEntity> nearbyMobs = player.level().getEntitiesOfClass(
                         LivingEntity.class,
-                        player.getBoundingBox().inflate(20.0),
+                        player.getBoundingBox().inflate(4.0),
                         target -> target != player && target instanceof Mob);
 
                 for (LivingEntity mob : nearbyMobs) {
-                    mob.removeEffect(MobEffects.LEVITATION);
+                    mob.removeEffect(MobEffects.SLOWNESS);
                 }
             }
 
@@ -217,7 +206,7 @@ public InteractionResult use(Level level, Player player, InteractionHand hand) {
     fireSonicBoom((ServerLevel) level, player);
     tryWindBurstLaunch(player);
     // คูลดาวน์ 2 วินาที
-    player.getCooldowns().addCooldown(stack, 10);
+    player.getCooldowns().addCooldown(stack, 20);
 
 
     return InteractionResult.SUCCESS;
@@ -276,7 +265,7 @@ private void tryWindBurstLaunch(Player player) {
 private void fireSonicBoom(ServerLevel level, Player player) {
     double range = 16.0D;
     double beamRadius = 2.0D;
-    float damage = 3F;
+    float damage = 4F;
 
     Vec3 start = player.getEyePosition();
     Vec3 direction = player.getViewVector(1.0F).normalize();
@@ -288,8 +277,8 @@ private void fireSonicBoom(ServerLevel level, Player player) {
             player.getX(), player.getY(), player.getZ(),
             SoundEvents.WARDEN_ROAR,
             SoundSource.PLAYERS,
-            0.5F,
-            0.25F
+            1.0F,
+            0.5F
     );
 
     // อนุภาคเป็นแนวคลื่น
@@ -392,11 +381,11 @@ level.sendParticles(
         
 
 
-        player.addEffect(new MobEffectInstance(MobEffects.DARKNESS, 40, 2, false, false, true));
+        player.addEffect(new MobEffectInstance(MobEffects.DARKNESS, 80, 2, false, false, true));
         
 
         // ผลักเป้าหมายไปด้านหน้าเล็กน้อย
-        Vec3 knockback = direction.scale(1.2D).add(0.0D, 0.2D, 0.0D);
+        Vec3 knockback = direction.scale(1.5D).add(0.0D, 0.5D, 0.0D);
         living.addDeltaMovement(knockback);
 living.hurtMarked = true;
     }
