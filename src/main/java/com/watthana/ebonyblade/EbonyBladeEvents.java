@@ -20,7 +20,7 @@ public class EbonyBladeEvents {
         if (!(entity instanceof Player player)) {
             return;
         }
-
+//
         if (killedEntity instanceof Player) {
             return;
         }
